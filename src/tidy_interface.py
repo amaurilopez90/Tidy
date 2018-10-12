@@ -1,3 +1,4 @@
+from tkinter import filedialog
 from tkinter import *
 import json
 
@@ -8,20 +9,46 @@ class TidyInterface():
         self._master = master
         self._target_directory = ""
         self._criteria = {}
+        self.entry_text = StringVar()
 
+        #Set up the top menu configuration for gui
+        menu = Menu(self._master)
+        self._master.config(menu=menu)
+
+        fileMenu = Menu(menu)
+        menu.add_cascade(label='File', menu=fileMenu)
+        fileMenu.add_command(label='Open Criteria...', command=self.load_criteria)
+        fileMenu.add_separator()
+        fileMenu.add_command(label='Save', command=self.save_criteria)
+        fileMenu.add_command(label='Save Criteria As...', command=self.save_criteria(save_as=True))
+        fileMenu.add_separator()
+        fileMenu.add_command(label='Exit', command=self._master.destroy)
+
+        #Make initial frame for the base
         frame = Frame(master)
         frame.pack()
 
-        self.sel_dir_button = Button(frame, text='Print message', command=self.print_message)
-        self.sel_dir_button.pack(side=LEFT)
+        #Create layout for gui
+        self.directory_entry = Entry(frame, textvariable=self.entry_text)
+        self.directory_entry_label = Label(frame, text="Target")
+        self.browse_button = Button(frame, text='Browse', command=self.select_dir)
+        self.organize_button = Button(frame, text='Organize', command=self.organize)
+        
+        #Pack components into gui grid
+        self.directory_entry_label.grid(sticky=E)
+        self.directory_entry.grid(row=0, column=1)
+        self.browse_button.grid(row=0, column=2)
+        self.organize_button.grid(columnspan=3)
 
-        self.quit_button = Button(frame, text='Click here to quit', command=self._master.destroy)
-        self.quit_button.pack(side=LEFT)
 
     def start(self):
         self._master.mainloop()
 
-    def print_message(self):
+    def select_dir(self):
+        path = filedialog.askdirectory()
+        self.entry_text.set(path)
+
+    def organize(self):
         print('working')
 
     def generate_criteria(self):
@@ -30,4 +57,9 @@ class TidyInterface():
         #for future usage
         pass
 
+    def load_criteria(self):
+        pass
+    
+    def save_criteria(self, save_as=False):
+        pass
 

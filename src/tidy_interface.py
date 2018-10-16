@@ -10,6 +10,9 @@ class TidyInterface():
         self._target_directory = ""
         self._criteria = {}
         self.entry_text = StringVar()
+        self.alphabetical = IntVar()
+        self.by_date = IntVar()
+        self.sub_folders = IntVar()
 
         #Set up the top menu configuration for gui
         menu = Menu(self._master)
@@ -29,18 +32,20 @@ class TidyInterface():
         frame.pack()
 
         #Create layout for gui
-        self.directory_entry = Entry(frame, textvariable=self.entry_text)
-        self.directory_entry_label = Label(frame, text="Target")
-        self.browse_button = Button(frame, text='Browse', command=self.select_dir)
-        self.organize_button = Button(frame, text='Organize', command=self.organize)
+        directory_entry = Entry(frame, textvariable=self.entry_text).grid(row=0, column=1)
         
-        #Pack components into gui grid
-        self.directory_entry_label.grid(sticky=E)
-        self.directory_entry.grid(row=0, column=1)
-        self.browse_button.grid(row=0, column=2)
-        self.organize_button.grid(columnspan=3)
-
-
+        directory_entry_label = Label(frame, text="Directory").grid(sticky=E, row=0)
+        organize_method_label = Label(frame, text='Organize how?').grid(sticky=E, row=2)
+        sub_folders_label = Label(frame, text='Sub Folders?').grid(sticky=E, row=3, column=0)
+        
+        browse_button = Button(frame, text='Browse', command=self.select_dir).grid(row=0, column=2)
+        organize_button = Button(frame, text='Organize', command=self.organize).grid(columnspan=3, row=4)
+        
+        chk_alphabetical = Checkbutton(frame, text="A-z", variable=self.alphabetical).grid(row=2, column=1, sticky=W)
+        chk_by_date = Checkbutton(frame, text="By Date", variable=self.by_date).grid(row=2, column=1, sticky=E)
+        chk_sub_folders = Checkbutton(frame, variable = self.sub_folders).grid(row=3, column=1, sticky=W)
+        
+        
     def start(self):
         self._master.mainloop()
 

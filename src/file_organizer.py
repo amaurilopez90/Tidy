@@ -1,4 +1,5 @@
 import os
+import glob
 import sys
 
 def organize(target_directory, method):

@@ -36,9 +36,12 @@ class TidyInterface():
         self.alphabetical = IntVar()
         self.by_date = IntVar()
         self.sub_folders = IntVar()
+        self.folders_count = IntVar()
         self.file_extensions = {''}
         self.ext_dropdown = OptionMenu(frame, self.target_extension, *self.file_extensions)
         self.ext_dropdown.grid(column=4, row=2)
+        self.sub_folders_scale = Scale(frame, from_=0, to=4, orient=HORIZONTAL, variable=self.folders_count, width=10, state=DISABLED)
+        self.sub_folders_scale.grid(row=3, column=2, sticky=NE)
 
         #Set up the top menu configuration for gui
         menu = Menu(self._master)
@@ -62,14 +65,17 @@ class TidyInterface():
         ext_label = Label(frame, text='Target ext.').grid(column=3, row=2)
         
         browse_button = Button(frame, text='Browse', command=self.select_dir).grid(row=0, column=4)
-        organize_button = Button(frame, text='Organize', command=self.organize).grid(columnspan=5, row=4)
+        organize_button = Button(frame, text='Organize', command=self.organize).grid(columnspan=5, row=5)
         
         chk_alphabetical = Checkbutton(frame, text="A-z", variable=self.alphabetical).grid(row=2, column=1, sticky=W)
         chk_by_date = Checkbutton(frame, text="By Date", variable=self.by_date).grid(row=2, column=2, sticky=E)
-        chk_sub_folders = Checkbutton(frame, variable = self.sub_folders).grid(row=3, column=1, sticky=W)
+        chk_sub_folders = Checkbutton(frame, variable=self.sub_folders, command=self.toggle_slider).grid(row=3, column=1, sticky=W)
 
     def start(self):
         self._master.mainloop()
+
+    def toggle_slider(self):
+        self.sub_folders_scale['state'] = DISABLED if not self.sub_folders.get() else NORMAL
 
     def select_dir(self):
         #open a directory dialog box to ask for directory

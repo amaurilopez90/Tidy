@@ -29,6 +29,7 @@ class TidyInterface():
 
         #Required attributes
         self._master = master
+        self._filename = ''
         self._criteria = {
             'target_directory': StringVar(),
             'target_extension': StringVar(),
@@ -52,8 +53,8 @@ class TidyInterface():
         menu.add_cascade(label='File', menu=fileMenu)
         fileMenu.add_command(label='Open Criteria...', command=self.load_criteria)
         fileMenu.add_separator()
-        fileMenu.add_command(label='Save', command=self.save_criteria(self._criteria))
-        fileMenu.add_command(label='Save Criteria As...', command=self.save_criteria(self._criteria, save_as=True))
+        fileMenu.add_command(label='Save', command=lambda func=self.save_criteria: func(self._criteria))
+        fileMenu.add_command(label='Save Criteria As...', command=lambda func=self.save_criteria: func(self._criteria, save_as=True))
         fileMenu.add_separator()
         fileMenu.add_command(label='Exit', command=lambda code=0: sys.exit(code))
 
@@ -78,7 +79,12 @@ class TidyInterface():
         return criteria
 
     def toggle_slider(self):
-        self.sub_folders_scale['state'] = DISABLED if not self._criteria['flag_sub_folders'].get() else NORMAL
+        if not self._criteria['flag_sub_folders'].get():
+            self.sub_folders_scale['showvalue'] = 1
+            self.sub_folders_scale['state'] = DISABLED
+            self._criteria['folder_count'].set(0)
+        else:
+            self.sub_folders_scale['state'] = NORMAL
 
     def select_dir(self):
         #open a directory dialog box to ask for directory
@@ -90,6 +96,28 @@ class TidyInterface():
         
     def load_criteria(self):
         pass
+
+    def save_criteria(self, class_criteria, save_as=False):
+
+        data = self.get_criteria(class_criteria)
+
+        #if file doesn't exist yet then do save_as
+        if self._filename == '':
+            save_as = True
+        
+        if(save_as):
+            file = filedialog.asksaveasfile(mode='w', initialdir='./criteria', defaultextension='.json', title='Select File')
+            if file:
+                with open(file.name, 'w') as output:
+                    json.dump(data, output)
+
+                self._filename = file.name
+            else:
+                return
+        else:
+            with open(self._filename, 'w') as output:
+                json.dump(data, output)
+                
 
     @update_ext_dropdown
     def update_file_extensions(self, extensions):
@@ -111,10 +139,3 @@ class TidyInterface():
             extensions.add(f".{file.split('.')[-1]}")
 
         return extensions
-
-    @staticmethod
-    def save_criteria(criteria, save_as=False):
-        #Generation of criteria .json files
-        #including 'load' and 'save' functionality to save or load an existing criteria into the GUI
-        #for future usage
-        pass

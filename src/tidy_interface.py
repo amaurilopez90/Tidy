@@ -80,11 +80,12 @@ class TidyInterface():
 
     def toggle_slider(self):
         if not self._criteria['flag_sub_folders'].get():
-            self.sub_folders_scale['showvalue'] = 1
+            self.sub_folders_scale.set(0)
             self.sub_folders_scale['state'] = DISABLED
             self._criteria['folder_count'].set(0)
         else:
             self.sub_folders_scale['state'] = NORMAL
+            self.sub_folders_scale.set(self._criteria['folder_count'].get())
 
     def select_dir(self):
         #open a directory dialog box to ask for directory
@@ -95,10 +96,28 @@ class TidyInterface():
         self.update_file_extensions(self.get_file_extensions(path))
         
     def load_criteria(self):
-        pass
+        file = filedialog.askopenfilename(initialdir='./criteria')
+
+        if file:
+            with open(file) as json_file:
+                data = json.load(json_file)
+                print(data)
+
+            #Get new extensions
+            self.update_file_extensions(self.get_file_extensions(os.path.dirname(file)))
+            
+            #load gui with new data
+            for k,v in iter(data.items()):
+                self._criteria[k].set(v)
+
+            #toggleslider
+            self.toggle_slider()
+
+        else:
+            return
+
 
     def save_criteria(self, class_criteria, save_as=False):
-
         data = self.get_criteria(class_criteria)
 
         #if file doesn't exist yet then do save_as
@@ -106,7 +125,7 @@ class TidyInterface():
             save_as = True
         
         if(save_as):
-            file = filedialog.asksaveasfile(mode='w', initialdir='./criteria', defaultextension='.json', title='Select File')
+            file = filedialog.asksaveasfile(mode='w', initialdir='./criteria', defaultextension='.json', title='Select File', filetypes=[('JSON files', ['.json'])])
             if file:
                 with open(file.name, 'w') as output:
                     json.dump(data, output)

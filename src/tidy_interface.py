@@ -69,8 +69,8 @@ class TidyInterface():
         browse_button = Button(frame, text='Browse', command=self.select_dir).grid(row=0, column=4)
         organize_button = Button(frame, text='Organize', command=self._master.destroy).grid(columnspan=5, row=5)
         
-        chk_alphabetical = Checkbutton(frame, text="A-z", variable=self._criteria['flag_alphabetical']).grid(row=2, column=1, sticky=W)
-        chk_by_date = Checkbutton(frame, text="By Date", variable=self._criteria['flag_by_date']).grid(row=2, column=2, sticky=E)
+        chk_alphabetical = Checkbutton(frame, text="A-z", variable=self._criteria['flag_alphabetical'], command=lambda func=self.chk_validate: func('alphabetical')).grid(row=2, column=1, sticky=W)
+        chk_by_date = Checkbutton(frame, text="By Date", variable=self._criteria['flag_by_date'], command=lambda func=self.chk_validate: func('by_date')).grid(row=2, column=2, sticky=E)
         chk_sub_folders = Checkbutton(frame, variable=self._criteria['flag_sub_folders'], command=self.toggle_slider).grid(row=3, column=1, sticky=W)
 
     def start(self):
@@ -79,13 +79,25 @@ class TidyInterface():
         return criteria
 
     def toggle_slider(self):
+        #only allow sub folder count if A-z or ByDate has been selected, otherwise it wouldn't really make sense
+
         if not self._criteria['flag_sub_folders'].get():
-            self.sub_folders_scale.set(0)
             self.sub_folders_scale['state'] = DISABLED
             self._criteria['folder_count'].set(0)
         else:
-            self.sub_folders_scale['state'] = NORMAL
+            if(self._criteria['flag_alphabetical'].get() or self._criteria['flag_by_date'].get()):
+                self.sub_folders_scale['state'] = NORMAL
+            else:
+                self.sub_folders_scale['state'] = DISABLED
+            
             self.sub_folders_scale.set(self._criteria['folder_count'].get())
+
+    def chk_validate(self, sender):
+        #only allow one of either A-z or ByDate to be active at a time
+        if sender == 'alphabetical':
+            self._criteria['flag_by_date'].set(0)
+        else:
+            self._criteria['flag_alphabetical'].set(0)
 
     def select_dir(self):
         #open a directory dialog box to ask for directory

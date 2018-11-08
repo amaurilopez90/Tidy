@@ -42,7 +42,7 @@ class TidyInterface():
         self.file_extensions = {''}
         self.ext_dropdown = OptionMenu(frame, self._criteria['target_extension'], *self.file_extensions)
         self.ext_dropdown.grid(column=4, row=2)
-        self.sub_folders_scale = Scale(frame, from_=0, to=4, orient=HORIZONTAL, variable=self._criteria['folder_count'], width=10, state=DISABLED)
+        self.sub_folders_scale = Scale(frame, from_=2, to=6, orient=HORIZONTAL, variable=self._criteria['folder_count'], width=10, state=DISABLED)
         self.sub_folders_scale.grid(row=3, column=2, sticky=NE)
 
         #Set up the top menu configuration for gui
@@ -63,7 +63,7 @@ class TidyInterface():
         
         directory_entry_label = Label(frame, text="Directory").grid(sticky=E, row=0)
         organize_method_label = Label(frame, text='Organize how?').grid(sticky=E, row=2)
-        sub_folders_label = Label(frame, text='Sub Folders?').grid(sticky=E, row=3, column=0)
+        sub_folders_label = Label(frame, text='Sub Folder Count').grid(sticky=E, row=3, column=0)
         ext_label = Label(frame, text='Target ext.').grid(column=3, row=2)
         
         browse_button = Button(frame, text='Browse', command=self.select_dir).grid(row=0, column=4)
@@ -79,13 +79,13 @@ class TidyInterface():
         return criteria
 
     def toggle_slider(self):
-        #only allow sub folder count if A-z or ByDate has been selected, otherwise it wouldn't really make sense
+        #only allow sub folder count if A-z or ByDate or ext has been selected, otherwise it wouldn't really make sense
 
         if not self._criteria['flag_sub_folders'].get():
             self.sub_folders_scale['state'] = DISABLED
-            self._criteria['folder_count'].set(0)
+            self._criteria['folder_count'].set(2)
         else:
-            if(self._criteria['flag_alphabetical'].get() or self._criteria['flag_by_date'].get()):
+            if(self._criteria['flag_alphabetical'].get() or self._criteria['flag_by_date'].get() or self._criteria['target_extension'].get() != '' ):
                 self.sub_folders_scale['state'] = NORMAL
             else:
                 self.sub_folders_scale['state'] = DISABLED

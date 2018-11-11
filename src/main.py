@@ -9,6 +9,6 @@ gui = TidyInterface(root)
 
 #get organization method from gui
 method = gui.start()
-print(method)
 
 #analyze criteria and organize
+file_organizer.organize(**method)

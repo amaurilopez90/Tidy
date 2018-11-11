@@ -13,6 +13,8 @@ def update_ext_dropdown(func):
         menu = self.ext_dropdown['menu']
         menu.delete(0, 'end')
 
+        menu.add_command(label='.*', command=lambda value='.*': self._criteria['target_extension'].set(value))
+
         #Re-establish new drop down options
         for ext in self.file_extensions:
             menu.add_command(label=ext, command=lambda value=ext: self._criteria['target_extension'].set(value))
@@ -31,7 +33,7 @@ class TidyInterface():
         self._master = master
         self._filename = ''
         self._criteria = {
-            'target_directory': StringVar(),
+            'path': StringVar(),
             'target_extension': StringVar(),
             'flag_alphabetical': IntVar(),
             'flag_by_date': IntVar(),
@@ -39,10 +41,13 @@ class TidyInterface():
             'folder_count': IntVar(),
         }
 
-        self.file_extensions = {''}
+        #override gui exit protocol 
+        self._master.protocol('WM_DELETE_WINDOW', lambda code=0: sys.exit(code))
+
+        self.file_extensions = {'.*'}
         self.ext_dropdown = OptionMenu(frame, self._criteria['target_extension'], *self.file_extensions)
         self.ext_dropdown.grid(column=4, row=2)
-        self.sub_folders_scale = Scale(frame, from_=2, to=6, orient=HORIZONTAL, variable=self._criteria['folder_count'], width=10, state=DISABLED)
+        self.sub_folders_scale = Scale(frame, from_=0, to=4, orient=HORIZONTAL, variable=self._criteria['folder_count'], width=10, state=DISABLED)
         self.sub_folders_scale.grid(row=3, column=2, sticky=NE)
 
         #Set up the top menu configuration for gui
@@ -59,7 +64,7 @@ class TidyInterface():
         fileMenu.add_command(label='Exit', command=lambda code=0: sys.exit(code))
 
         #Create layout for gui
-        directory_entry = Entry(frame, textvariable=self._criteria['target_directory'], width=26).grid(row=0, column=1, columnspan=3)
+        directory_entry = Entry(frame, textvariable=self._criteria['path'], width=26).grid(row=0, column=1, columnspan=3)
         
         directory_entry_label = Label(frame, text="Directory").grid(sticky=E, row=0)
         organize_method_label = Label(frame, text='Organize how?').grid(sticky=E, row=2)
@@ -73,6 +78,9 @@ class TidyInterface():
         chk_by_date = Checkbutton(frame, text="By Date", variable=self._criteria['flag_by_date'], command=lambda func=self.chk_validate: func('by_date')).grid(row=2, column=2, sticky=E)
         chk_sub_folders = Checkbutton(frame, variable=self._criteria['flag_sub_folders'], command=self.toggle_slider).grid(row=3, column=1, sticky=W)
 
+        #Set any defaults
+        self._criteria['target_extension'].set('.*')
+
     def start(self):
         self._master.mainloop()
         criteria = self.get_criteria(self._criteria)
@@ -83,7 +91,7 @@ class TidyInterface():
 
         if not self._criteria['flag_sub_folders'].get():
             self.sub_folders_scale['state'] = DISABLED
-            self._criteria['folder_count'].set(2)
+            self._criteria['folder_count'].set(0)
         else:
             if(self._criteria['flag_alphabetical'].get() or self._criteria['flag_by_date'].get() or self._criteria['target_extension'].get() != '' ):
                 self.sub_folders_scale['state'] = NORMAL
@@ -101,12 +109,13 @@ class TidyInterface():
 
     def select_dir(self):
         #open a directory dialog box to ask for directory
-        path = filedialog.askdirectory()
-        self._criteria['target_directory'].set(path)
+        path = filedialog.askdirectory(initialdir='./')
+        if path:
+            self._criteria['path'].set(path)
 
-        #get file extensions in directory and update extensions drop down
-        self.update_file_extensions(self.get_file_extensions(path))
-        
+            #get file extensions in directory and update extensions drop down
+            self.update_file_extensions(self.get_file_extensions(path))
+
     def load_criteria(self):
         file = filedialog.askopenfilename(initialdir='./criteria')
 

@@ -93,7 +93,7 @@ class TidyInterface():
             self.sub_folders_scale['state'] = DISABLED
             self._criteria['folder_count'].set(0)
         else:
-            if(self._criteria['flag_alphabetical'].get() or self._criteria['flag_by_date'].get() or self._criteria['target_extension'].get() != '' ):
+            if(self._criteria['flag_alphabetical'].get() or self._criteria['flag_by_date'].get()):
                 self.sub_folders_scale['state'] = NORMAL
             else:
                 self.sub_folders_scale['state'] = DISABLED
@@ -176,6 +176,7 @@ class TidyInterface():
         #return set of file extensions that exist within directory path
         extensions = set()
         for file in os.listdir(path):
-            extensions.add(f".{file.split('.')[-1]}")
+            if not os.path.isdir(path+f"/{file}"):
+                extensions.add(f".{file.split('.')[-1]}")
 
         return extensions

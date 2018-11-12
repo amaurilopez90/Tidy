@@ -29,15 +29,22 @@ def get_file_extensions(path):
         #return set of file extensions that exist within directory path
         extensions = set()
         for file in os.listdir(path):
-            extensions.add(f".{file.split('.')[-1]}")
+            if not os.path.isdir(path+f"/{file}"):
+                extensions.add(f".{file.split('.')[-1]}")
 
         return extensions
 
-def make_folders(dest, folder, extensions):
+def make_folders(dest, file_names, extensions):
     
     #make groupings
     for ext in extensions:
-        group = [f for f in folder if f.endswith(ext)]
-        print(group)
-        print(dest+f"/{ext.split('.')[-1]}_files")
-        # os.mkdir(dest+f"/{ext}_files")
+        group = [f for f in file_names if f.endswith(ext)]
+        dir = dest+f"/{ext.split('.')[-1]}_files"
+
+        if not os.path.isdir(dir):
+            os.mkdir(dir)
+
+        for file in group:
+            shutil.move(dest+f"/{file}", dir)
+
+    print('organized')

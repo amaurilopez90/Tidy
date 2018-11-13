@@ -1,5 +1,4 @@
 import os
-import glob
 import shutil
 
 def organize(path, target_extension, flag_alphabetical, flag_by_date, flag_sub_folders, folder_count):
@@ -15,12 +14,23 @@ def organize(path, target_extension, flag_alphabetical, flag_by_date, flag_sub_f
     #make this cleaner by sorting it
     file_names.sort(key=sort_by_type)
     
-    if target_extension=='.*':
+    #seperate files into folders based on extension(s)
+    if (target_extension == '.*'):
         extensions = get_file_extensions(path)
-        make_folders(path, file_names, extensions)
+        new_folders = group_extensions(path, file_names, extensions)
     else:
-        make_folders(path, file_names, {f"{target_extension}"})
+        new_folders = group_extensions(path, file_names, {f"{target_extension}"})
 
+    #Create a new grouping within each new_folder based on alphabetical sort or by_date sort
+    if flag_alphabetical:
+        for folder in new_folders:
+            group_alphabetical(folder, folder_count)
+    elif flag_by_date:
+        for folder in new_folders:
+            group_by_date(folder, folder_count)
+    else:
+        #Done
+        print('organized')
 
 def sort_by_type(file):
     return os.path.splitext(file)[::-1]
@@ -34,7 +44,13 @@ def get_file_extensions(path):
 
         return extensions
 
-def make_folders(dest, file_names, extensions):
+def group_extensions(dest, file_names, extensions):
+    '''
+    Creates groupings between file extensions and new sub_folder names
+
+    '''
+    #all folders to be made
+    sub_folders = []
     
     #make groupings
     for ext in extensions:
@@ -47,4 +63,15 @@ def make_folders(dest, file_names, extensions):
         for file in group:
             shutil.move(dest+f"/{file}", dir)
 
-    print('organized')
+        #append dir to list
+        sub_folders.append(dir)
+
+    print('Folders by extensions made')
+    return sub_folders
+
+def group_alphabetical(dir, count):
+    
+    pass
+
+def group_by_date(dir, count):
+    pass

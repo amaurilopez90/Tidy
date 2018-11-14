@@ -1,5 +1,6 @@
 import os
 import shutil
+import string
 
 def organize(path, target_extension, flag_alphabetical, flag_by_date, flag_sub_folders, folder_count):
     '''
@@ -10,9 +11,6 @@ def organize(path, target_extension, flag_alphabetical, flag_by_date, flag_sub_f
 
     '''
     file_names = os.listdir(path)
-    
-    #make this cleaner by sorting it
-    file_names.sort(key=sort_by_type)
     
     #seperate files into folders based on extension(s)
     if (target_extension == '.*'):
@@ -28,12 +26,9 @@ def organize(path, target_extension, flag_alphabetical, flag_by_date, flag_sub_f
     elif flag_by_date:
         for folder in new_folders:
             group_by_date(folder, folder_count)
-    else:
-        #Done
-        print('organized')
-
-def sort_by_type(file):
-    return os.path.splitext(file)[::-1]
+    
+    #Done
+    print('Organized')
         
 def get_file_extensions(path):
         #return set of file extensions that exist within directory path
@@ -66,12 +61,41 @@ def group_extensions(dest, file_names, extensions):
         #append dir to list
         sub_folders.append(dir)
 
-    print('Folders by extensions made')
     return sub_folders
 
 def group_alphabetical(dir, count):
-    
-    pass
+    start = 0
+    end = 0
+
+    if count:
+        step = 26//count
+    else:
+        return
+
+    file_names = os.listdir(dir)
+
+    #precedent upper_case over lower_case
+    alphabet_upper = string.ascii_uppercase
+    alphabet_lower = string.ascii_lowercase
+
+    for x in range(0, count):
+        if x == count - 1:
+            #make last group include all left over characters as well
+            end = -1
+        else:
+            end = start + step
+
+        new_dir = dir + f"/files_{alphabet_upper[start]}_through_{alphabet_upper[end]}"
+
+        if not os.path.isdir(new_dir):
+            os.mkdir(new_dir)
+
+        #Move files
+        for file in file_names:
+            if (not os.path.isdir(file)) and (file[0] in alphabet_upper[start:end] or file[0] in alphabet_lower[start:end]):
+                shutil.move(dir + f"/{file}", new_dir)
+            
+        start += step + 1
 
 def group_by_date(dir, count):
     pass

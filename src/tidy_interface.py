@@ -1,4 +1,5 @@
 from tkinter import filedialog
+from tkinter import messagebox
 from tkinter import *
 import json
 import sys
@@ -72,7 +73,7 @@ class TidyInterface():
         ext_label = Label(frame, text='Target ext.').grid(column=3, row=2)
         
         browse_button = Button(frame, text='Browse', command=self.select_dir).grid(row=0, column=4)
-        organize_button = Button(frame, text='Organize', command=self._master.destroy).grid(columnspan=5, row=5)
+        organize_button = Button(frame, text='Organize', command=self.check_for_errors).grid(columnspan=5, row=5)
         
         chk_alphabetical = Checkbutton(frame, text="A-z", variable=self._criteria['flag_alphabetical'], command=lambda func=self.chk_validate: func('alphabetical')).grid(row=2, column=1, sticky=W)
         chk_by_date = Checkbutton(frame, text="By Date", variable=self._criteria['flag_by_date'], command=lambda func=self.chk_validate: func('by_date')).grid(row=2, column=2, sticky=E)
@@ -83,8 +84,13 @@ class TidyInterface():
 
     def start(self):
         self._master.mainloop()
-        criteria = self.get_criteria(self._criteria)
+        criteria = self.format_criteria(self._criteria)
         return criteria
+
+    def check_for_errors(self):
+        #This will be expanded upon later
+        error = False
+        self._master.destroy() if not error else messagebox.showerror('Error', 'Fix Errors')
 
     def toggle_slider(self):
         #only allow sub folder count if A-z or ByDate or ext has been selected, otherwise it wouldn't really make sense
@@ -129,7 +135,11 @@ class TidyInterface():
             
             #load gui with new data
             for k,v in iter(data.items()):
-                self._criteria[k].set(v)
+                if k in self._criteria:
+                    self._criteria[k].set(v)
+                else:
+                    print('Load failed. Are you sure this file is up to date?')
+                    return
 
             #toggleslider
             self.toggle_slider()
@@ -139,7 +149,7 @@ class TidyInterface():
 
 
     def save_criteria(self, class_criteria, save_as=False):
-        data = self.get_criteria(class_criteria)
+        data = self.format_criteria(class_criteria)
 
         #if file doesn't exist yet then do save_as
         if self._filename == '':
@@ -164,7 +174,7 @@ class TidyInterface():
         self.file_extensions = extensions
 
     @staticmethod
-    def get_criteria(class_criteria):
+    def format_criteria(class_criteria):
         formatted_criteria = {}
         for k,v in iter(class_criteria.items()):
             formatted_criteria[k] = v.get()

@@ -55,8 +55,8 @@ def group_extensions(dest, file_names, extensions):
         if not os.path.isdir(dir):
             os.mkdir(dir)
         else:
-            #if directory already exists, then unpack any sub directories within it for fresh organization
-            rec_unpack_dir(dir)
+            #if directory already exists then unpack any sub directories within it for fresh organization
+            rec_unpack_dir(dir, dir)
 
         for file in group:
             shutil.move(dest+f"/{file}", dir)
@@ -95,7 +95,7 @@ def group_alphabetical(dir, count):
 
         #Move files
         for file in file_names:
-            if (not os.path.isdir(file)) and (file[0] in alphabet_upper[start:end] or file[0] in alphabet_lower[start:end]):
+            if (not os.path.isdir(dir + f"/{file}")) and (file[0] in alphabet_upper[start:end] or file[0] in alphabet_lower[start:end]):
                 shutil.move(dir + f"/{file}", new_dir)
             
         start += step + 1
@@ -103,5 +103,15 @@ def group_alphabetical(dir, count):
 def group_by_date(dir, count):
     pass
 
-def rec_unpack_dir(dir):
-    pass
+def rec_unpack_dir(source, destination):
+    #check for any subdirectories and unpack them
+    files = os.listdir(source)
+    for file in files:
+        if os.path.isdir(source + f"/{file}"):
+            rec_unpack_dir(source + f"/{file}", source)
+
+            #delete empty directory
+            os.rmdir(source + f"/{file}")
+            continue
+        
+        shutil.move(source + f"/{file}", destination)

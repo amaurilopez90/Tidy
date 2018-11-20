@@ -1,6 +1,8 @@
+from datetime import datetime
 import os
 import shutil
 import string
+import platform
 
 def organize(path, target_extension, flag_alphabetical, flag_by_date, flag_sub_folders, folder_count):
     '''
@@ -101,7 +103,51 @@ def group_alphabetical(dir, count):
         start += step + 1
 
 def group_by_date(dir, count):
-    pass
+    #Find most recent file modified and least recent file modified
+    files = os.listdir(dir)
+
+    most_recent_time = latest_time = creation_date(dir + f"/{files[0]}")
+
+    #Skip the first file since we already got the modified time
+    iterfiles = iter(files)
+    next(iterfiles)
+
+    for file in iterfiles:
+        time_created = creation_date(dir + f"/{file}")
+        if time_created > most_recent_time:
+            most_recent_time = time_created
+        elif time_created < latest_time:
+            latest_time = time_created
+        else: 
+            continue
+
+    #Get the most_recent created file and latest created file times into mm/dd/yyyy format
+    most_recent_time = datetime.fromtimestamp(most_recent_time).strftime('%m/%d/%Y')
+    latest_time = datetime.fromtimestamp(latest_time).strftime('%m/%d/%Y')
+
+    print(most_recent_time)
+    print(latest_time)
+
+    # TODO: Create subdivisions of dates between most and least recent time modified, section into folders 
+
+    return
+
+def creation_date(path):
+    """
+    Try to get the date that a file was created, falling back to when it was
+    last modified if that isn't possible.
+    See http://stackoverflow.com/a/39501288/1709587 for explanation.
+    """
+    if platform.system() == 'Windows':
+        return os.path.getctime(path)
+    else:
+        stat = os.stat(path)
+        try:
+            return stat.st_birthtime
+        except AttributeError:
+            # We're probably on Linux. No easy way to get creation dates here,
+            # so we'll settle for when its content was last modified.
+            return stat.st_mtime
 
 def rec_unpack_dir(source, destination):
     #check for any subdirectories and unpack them

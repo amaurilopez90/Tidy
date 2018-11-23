@@ -1,4 +1,6 @@
 from datetime import datetime
+from datetime import date
+from datetime import timedelta
 import os
 import shutil
 import string
@@ -103,17 +105,21 @@ def group_alphabetical(dir, count):
         start += step + 1
 
 def group_by_date(dir, count):
+
+    if not count:
+        return
+
     #Find most recent file modified and least recent file modified
     files = os.listdir(dir)
 
-    most_recent_time = latest_time = creation_date(dir + f"/{files[0]}")
+    most_recent_time = latest_time = get_creation_date(dir + f"/{files[0]}")
 
     #Skip the first file since we already got the modified time
     iterfiles = iter(files)
     next(iterfiles)
 
     for file in iterfiles:
-        time_created = creation_date(dir + f"/{file}")
+        time_created = get_creation_date(dir + f"/{file}")
         if time_created > most_recent_time:
             most_recent_time = time_created
         elif time_created < latest_time:
@@ -122,22 +128,39 @@ def group_by_date(dir, count):
             continue
 
     #Get the most_recent created file and latest created file times into mm/dd/yyyy format
-    most_recent_time = datetime.fromtimestamp(most_recent_time).strftime('%m/%d/%Y')
-    latest_time = datetime.fromtimestamp(latest_time).strftime('%m/%d/%Y')
+    most_recent_time = datetime.fromtimestamp(most_recent_time).date()
+    latest_time = datetime.fromtimestamp(latest_time).date()
+    
+    delta = (most_recent_time - latest_time).days
 
-    print(most_recent_time)
-    print(latest_time)
+    if delta == 0:
+        #Same day for all files
+        new_dir = dir + f"/{most_recent_time}"
+        print(new_dir)
+    else:
+        step = delta//count
 
-    # TODO: Create subdivisions of dates between most and least recent time modified, section into folders 
+        if step == 1:
+            #Create a folder for each of the days between delta
+            for x in range(delta):
+                new_dir = dir + f"/{latest_time + timedelta(days=x)}"
+                if not os.path.isdir(new_dir):
+                    os.mkdir(new_dir)
+                
+            #Move each file into their folders based off of creation date
+            for file in files:
+                path = dir + f"/{file}"
+                date_created = datetime.fromtimestamp(get_creation_date(path)).date()
+                shutil.move(path, dir + f"/{date_created}")
+
+        else:
+            pass
+            # TODO: Compute for larger steps
 
     return
 
-def creation_date(path):
-    """
-    Try to get the date that a file was created, falling back to when it was
-    last modified if that isn't possible.
-    See http://stackoverflow.com/a/39501288/1709587 for explanation.
-    """
+def get_creation_date(path):
+    
     if platform.system() == 'Windows':
         return os.path.getctime(path)
     else:
@@ -145,7 +168,7 @@ def creation_date(path):
         try:
             return stat.st_birthtime
         except AttributeError:
-            # We're probably on Linux. No easy way to get creation dates here,
+            # We're probably on Linux.
             # so we'll settle for when its content was last modified.
             return stat.st_mtime
 

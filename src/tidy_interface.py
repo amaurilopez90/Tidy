@@ -89,8 +89,12 @@ class TidyInterface():
 
     def check_for_errors(self):
         #This will be expanded upon later
-        error = False
-        self._master.destroy() if not error else messagebox.showerror('Error', 'Fix Errors')
+        errors = set()
+
+        if self._criteria['path'].get() == '':
+            errors.add('Missing path')
+
+        self._master.destroy() if errors == set() else self.display_errors(errors)
 
     def toggle_slider(self):
         #only allow sub folder count if A-z or ByDate or ext has been selected, otherwise it wouldn't really make sense
@@ -128,7 +132,6 @@ class TidyInterface():
         if file:
             with open(file) as json_file:
                 data = json.load(json_file)
-                print(data)
 
             #Get new extensions
             self.update_file_extensions(self.get_file_extensions(os.path.dirname(file)))
@@ -138,7 +141,7 @@ class TidyInterface():
                 if k in self._criteria:
                     self._criteria[k].set(v)
                 else:
-                    print('Load failed. Are you sure this file is up to date?')
+                    messagebox.showerror('Error', 'Load failed. JSON may be out of date')
                     return
 
             #toggleslider
@@ -190,3 +193,7 @@ class TidyInterface():
                 extensions.add(f".{file.split('.')[-1]}")
 
         return extensions
+
+    @staticmethod
+    def display_errors(errors):
+        messagebox.showerror('Errors', f"{errors}")

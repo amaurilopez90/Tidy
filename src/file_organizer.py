@@ -73,19 +73,24 @@ def group_extensions(dest, file_names, extensions):
 def group_alphabetical(dir, count):
     start = 0
     end = 0
+    moved_files = set()
 
     if count:
         step = 26//count
     else:
         return
 
-    file_names = os.listdir(dir)
+    files = os.listdir(dir)
 
     #precedent upper_case over lower_case
     alphabet_upper = string.ascii_uppercase
     alphabet_lower = string.ascii_lowercase
 
-    for x in range(0, count):
+    for x in range(count):
+        #Remove already moved files from the list so we don't iter over again
+        for file in moved_files:
+            files.remove(file)
+
         if x == count - 1:
             #make last group include all left over characters as well
             end = -1
@@ -97,10 +102,14 @@ def group_alphabetical(dir, count):
         if not os.path.isdir(new_dir):
             os.mkdir(new_dir)
 
+
         #Move files
-        for file in file_names:
+        for file in files:
             if (not os.path.isdir(dir + f"/{file}")) and (file[0] in alphabet_upper[start:end] or file[0] in alphabet_lower[start:end]):
                 shutil.move(dir + f"/{file}", new_dir)
+
+                #Remove the moves file from the list of files so we don't iter over it again
+                moved_files.add(file)
             
         start += step + 1
 
@@ -109,12 +118,12 @@ def group_by_date(dir, count):
     if not count:
         return
 
-    #Find most recent file modified and least recent file modified
+    #Find most recent file created and least recent file created
     files = os.listdir(dir)
 
     most_recent_time = latest_time = get_creation_date(dir + f"/{files[0]}")
 
-    #Skip the first file since we already got the modified time
+    #Skip the first file since we already got the created time
     iterfiles = iter(files)
     next(iterfiles)
 
@@ -134,16 +143,19 @@ def group_by_date(dir, count):
     delta = (most_recent_time - latest_time).days
 
     if delta == 0:
-        #Same day for all files
-        new_dir = dir + f"/{most_recent_time}"
-        print(new_dir)
+        #Case where its the same creation date for all files
+        new_dir = dir + f"/Created_{most_recent_time}"
+
+        for file in files:
+            path = dir + f"/{file}"
+            shutil.move(path, new_dir)
     else:
         step = delta//count
 
         if step == 1:
             #Create a folder for each of the days between delta
             for x in range(delta):
-                new_dir = dir + f"/{latest_time + timedelta(days=x)}"
+                new_dir = dir + f"/Created_{latest_time + timedelta(days=x)}"
                 if not os.path.isdir(new_dir):
                     os.mkdir(new_dir)
                 
@@ -151,13 +163,42 @@ def group_by_date(dir, count):
             for file in files:
                 path = dir + f"/{file}"
                 date_created = datetime.fromtimestamp(get_creation_date(path)).date()
-                shutil.move(path, dir + f"/{date_created}")
+                shutil.move(path, dir + f"/Created_{date_created}")
 
         else:
-            pass
-            # TODO: Compute for larger steps
+            #Make folder names match a range of dates within a step
+            start_date = latest_time
+            moved_files = set()
 
-    return
+            for x in range(count):
+                #Remove already moved files from the list so we don't iter over again
+                for file in moved_files:
+                    files.remove(file)
+
+                if x == count - 1:
+                    #Make last group include all left over dates
+                    end_date = most_recent_time
+                else:
+                    end_date = start_date + timedelta(days=step)
+
+                new_dir = dir + f"/Created_{start_date}_to_{end_date}"
+
+                if not os.path.isdir(new_dir):
+                    os.mkdir(new_dir)
+
+
+                #Move Files
+                for file in files:
+                    path = dir + f"/{file}"
+                    date_created = datetime.fromtimestamp(get_creation_date(path)).date()
+
+                    #Move to folder if created date falls within range
+                    if not(os.path.isdir(path)) and (start_date <= date_created <= end_date):
+                        shutil.move(path, new_dir)
+
+                        moved_files.add(file)
+
+                start_date += timedelta(days=(step+1))
 
 def get_creation_date(path):
     

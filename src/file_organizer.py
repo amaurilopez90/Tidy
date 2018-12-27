@@ -19,6 +19,19 @@ def organize(path, target_extension, flag_alphabetical, flag_by_date, flag_sub_f
     #seperate files into folders based on extension(s)
     if (target_extension == '.*'):
         extensions = get_file_extensions(path)
+
+        #In the case where '.*' is selected, and there arent any files at root level relative to path,
+        #unpack all files within possible directories for fresh organization
+        if not(extensions) and file_names: 
+            print("Preparing for fresh organization...")
+            for dir in file_names:
+                rec_unpack_dir(path + f"/{dir}", path)
+                os.rmdir(path + f"/{dir}")
+            
+            #update file_names and extensions now that they are available
+            file_names = os.listdir(path)
+            extensions = get_file_extensions(path)
+
         new_folders = group_extensions(path, file_names, extensions)
     else:
         new_folders = group_extensions(path, file_names, {f"{target_extension}"})
@@ -50,7 +63,7 @@ def group_extensions(dest, file_names, extensions):
     '''
     #all folders to be made
     sub_folders = []
-    
+
     #make groupings
     for ext in extensions:
         group = [f for f in file_names if f.endswith(ext)]
